@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html style="width:100%;height:100%;">
+  <body style="width:100%;height:100%;margin:0;">
+    <script src="./config.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.26.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
+
+    <script>
+      function fetchDataFromDynamoDB() {
+        AWS.config.update({
+          accessKeyId: config.awsAccessKeyId,
+          secretAccessKey: config.awsSecretAccessKey
+        });
+        AWS.config.region = config.awsRegion;
+        var dynamoDb = new AWS.DynamoDB();
+
+        var data = [];
+        dynamoDb.scan(params = {TableName: config.tableName}, function(err, fetchedData) {
+          fetchedData = fetchedData.Items;
+          fetchedData.forEach(function(item){
+            var dataItem = {};
+            // Date() requires epoch milliseconds, not just epoch seconds:
+            dataItem[config.timeDataFieldName] = new Date(Number(item.timestamp.N * 1000)).toISOString();
+            dataItem[config.valueDataFieldName] = item.download_bit_per_second.N;
+            data.push(dataItem);
+          })
+          drawChart(data, config.timeDataFieldName, config.valueDataFieldName);
+        })
+      }
+
+      function drawChart(data, xDataFieldName, yDataFieldName) {
+        var svg = dimple.newSvg("body", "100%", "95%");
+        var chart = new dimple.chart(svg, data);
+        chart.setMargins("100px", "10px", "10px", "180px");
+        var x = chart.addTimeAxis("x", xDataFieldName, "%Y-%m-%dT%H:%M:%S.%LZ", "%Y-%m-%d %H:%M:%S");
+        x.timePeriod = d3.time.hours;
+        x.timeInterval = 3;
+        chart.addMeasureAxis("y", yDataFieldName);
+        chart.addColorAxis(yDataFieldName, ["red", "green"])
+        chart.addSeries(null, dimple.plot.bar);
+        chart.addSeries(null, dimple.plot.blubble);
+        chart.draw();
+        window.onresize = function () {
+          chart.draw(0, noDataChange=true);
+        };
+      };
+
+      fetchDataFromDynamoDB();
+    </script>
+  </body>
+</html>
