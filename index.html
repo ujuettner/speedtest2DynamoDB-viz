@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;">
   <body style="width:100%;height:100%;margin:0;">
+    <button class="btn" id="-1d">-1d</button>
+    <button class="btn" id="-3d">-3d</button>
+    <button class="btn" id="-1w">-1w</button>
+    <button class="btn" id="-1m">-1m</button>
+    <button class="btn" id="-1y">-1y</button>
+    <button class="btn" id="all">all</button>
     <script src="./config.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.26.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
 
     <script>
-      function fetchDataFromDynamoDB() {
+      function fetchDataFromDynamoDB(newerThan) {
         AWS.config.update({
           accessKeyId: config.awsAccessKeyId,
           secretAccessKey: config.awsSecretAccessKey
@@ -15,17 +21,31 @@
         AWS.config.region = config.awsRegion;
         var dynamoDb = new AWS.DynamoDB();
 
+        var scanParams = {};
+        scanParams.TableName = config.tableName;
+        scanParams.FilterExpression = "#timeField >= :oldest";
+        scanParams.ExpressionAttributeNames = {
+          "#timeField": config.timeDataFieldName
+        };
+        scanParams.ExpressionAttributeValues = {
+          ":oldest": { "N": newerThan.toString() }
+        };
+
         var data = [];
-        dynamoDb.scan(params = {TableName: config.tableName}, function(err, fetchedData) {
-          fetchedData = fetchedData.Items;
-          fetchedData.forEach(function(item){
-            var dataItem = {};
-            // in JavaScript epoch time is in milliseconds, not seconds:
-            dataItem[config.timeDataFieldName] = Number(item.timestamp.N * 1000);
-            dataItem[config.valueDataFieldName] = item.download_bit_per_second.N;
-            data.push(dataItem);
-          })
-          drawChart(data, config.timeDataFieldName, config.valueDataFieldName);
+        dynamoDb.scan(params = scanParams, function(err, fetchedData) {
+          if (err) {
+            console.log("Error on scan: ", JSON.stringify(err, null, 2));
+          } else {
+            fetchedData = fetchedData.Items;
+            fetchedData.forEach(function(item){
+              var dataItem = {};
+              // in JavaScript epoch time is in milliseconds, not seconds:
+              dataItem[config.timeDataFieldName] = Number(item.timestamp.N * 1000);
+              dataItem[config.valueDataFieldName] = item.download_bit_per_second.N;
+              data.push(dataItem);
+            })
+            drawChart(data, config.timeDataFieldName, config.valueDataFieldName);
+          }
         })
       }
 
@@ -53,7 +73,38 @@
         };
       };
 
-      fetchDataFromDynamoDB();
+      var nowInSeconds = new Date().getTime() / 1000;
+      var oneDayInSeconds = 24 * 60 * 60;
+      var threeDaysInSeconds = 3 * oneDayInSeconds;
+      var oneWeekInSeconds = 7 * oneDayInSeconds;
+      var oneMonthInSeconds = 30 * oneDayInSeconds;
+      var oneYearInSeconds = 365 * oneDayInSeconds;
+
+      fetchDataFromDynamoDB(nowInSeconds - oneDayInSeconds);
+
+      d3.selectAll(".btn").on("click", function() {
+        var oldestTimestamp = 0;
+        switch(d3.event.target.id) {
+          case "-1d":
+            oldestTimestamp = nowInSeconds - oneDayInSeconds;
+            break;
+          case "-3d":
+            oldestTimestamp = nowInSeconds -threeDaysInSeconds;
+            break;
+          case "-1w":
+            oldestTimestamp = nowInSeconds - oneWeekInSeconds;
+            break;
+          case "-1m":
+            oldestTimestamp = nowInSeconds - oneMonthInSeconds;
+            break;
+          case "-1y":
+            oldestTimestamp = nowInSeconds - oneYearInSeconds;
+            break;
+        };
+
+        d3.select("svg").remove();
+        fetchDataFromDynamoDB(oldestTimestamp);
+      });
     </script>
   </body>
 </html>
