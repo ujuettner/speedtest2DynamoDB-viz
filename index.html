@@ -29,6 +29,11 @@
         })
       }
 
+      function changeVizAttributes() {
+        d3.selectAll(".dimple-custom-series-bar").attr("opacity", "0.3");
+        d3.selectAll(".dimple-custom-series-bubble").attr("opacity", "0.9").attr("r", 2);
+      }
+
       function drawChart(data, xDataFieldName, yDataFieldName) {
         var svg = dimple.newSvg("body", "100%", "95%");
         var chart = new dimple.chart(svg, data);
@@ -37,12 +42,14 @@
         x.timePeriod = d3.time.hours;
         x.timeInterval = 3;
         chart.addMeasureAxis("y", yDataFieldName);
-        chart.addColorAxis(yDataFieldName, ["red", "green"])
-        chart.addSeries(null, dimple.plot.bar);
-        chart.addSeries(null, dimple.plot.blubble);
+        chart.addColorAxis(yDataFieldName, ["red", "green"]);
+        chart.addSeries(yDataFieldName, dimple.plot.bar);
+        chart.addSeries(yDataFieldName, dimple.plot.blubble);
         chart.draw();
+        changeVizAttributes();
         window.onresize = function () {
           chart.draw(0, noDataChange=true);
+          changeVizAttributes();
         };
       };
 
