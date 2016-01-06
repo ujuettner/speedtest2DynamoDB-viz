@@ -20,8 +20,8 @@
           fetchedData = fetchedData.Items;
           fetchedData.forEach(function(item){
             var dataItem = {};
-            // Date() requires epoch milliseconds, not just epoch seconds:
-            dataItem[config.timeDataFieldName] = new Date(Number(item.timestamp.N * 1000)).toISOString();
+            // in JavaScript epoch time is in milliseconds, not seconds:
+            dataItem[config.timeDataFieldName] = Number(item.timestamp.N * 1000);
             dataItem[config.valueDataFieldName] = item.download_bit_per_second.N;
             data.push(dataItem);
           })
@@ -33,7 +33,7 @@
         var svg = dimple.newSvg("body", "100%", "95%");
         var chart = new dimple.chart(svg, data);
         chart.setMargins("100px", "10px", "10px", "180px");
-        var x = chart.addTimeAxis("x", xDataFieldName, "%Y-%m-%dT%H:%M:%S.%LZ", "%Y-%m-%d %H:%M:%S");
+        var x = chart.addTimeAxis("x", xDataFieldName, null, "%Y-%m-%d %H:%M:%S");
         x.timePeriod = d3.time.hours;
         x.timeInterval = 3;
         chart.addMeasureAxis("y", yDataFieldName);
