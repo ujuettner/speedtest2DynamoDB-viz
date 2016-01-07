@@ -2,7 +2,7 @@ var config = {
   "awsAccessKeyId": "YOUR-AWS-ACCESS-KEY-ID",
   "awsSecretAccessKey": "YOUR-AWS-SECRET-ACCESS-KEY",
   "awsRegion": "eu-west-1",
-  "tableName": "speedtest",
+  "tableName": "speedtestresults",
   "timeDataFieldName": "timestamp",
   "valueDataFieldName": "download_bit_per_second"
 };
