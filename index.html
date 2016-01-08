@@ -9,6 +9,7 @@
     <button class="btn" id="all">all</button>
     <script src="./config.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.26.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/1.0.0/simple_statistics.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
 
@@ -41,9 +42,26 @@
               var dataItem = {};
               // in JavaScript epoch time is in milliseconds, not seconds:
               dataItem[config.timeDataFieldName] = Number(item.timestamp.N * 1000);
-              dataItem[config.valueDataFieldName] = item.download_bit_per_second.N;
+              dataItem[config.valueDataFieldName] = Number(item.download_bit_per_second.N);
               data.push(dataItem);
-            })
+            });
+            var values = data.map(function(item) { return item[config.valueDataFieldName]; }).
+              sort(function(a, b) {return a -b});
+            var min = ss.min(values);
+            var max = ss.max(values);
+            var mean = ss.mean(values);
+            var q90 = ss.quantileSorted(values, 0.1);
+            var q75 = ss.quantileSorted(values, 0.25);
+            var q50 = ss.quantileSorted(values, 0.5);
+            data = data.map(function(item) {
+              item["min"] = min;
+              item["max"] = max;
+              item["mean"] = mean;
+              item["q90"] = q90;
+              item["q75"] = q75;
+              item["q50"] = q50;
+              return item;
+            });
             drawChart(data, config.timeDataFieldName, config.valueDataFieldName);
           }
         })
@@ -61,10 +79,22 @@
         var x = chart.addTimeAxis("x", xDataFieldName, null, "%Y-%m-%d %H:%M:%S");
         x.timePeriod = d3.time.hours;
         x.timeInterval = 3;
-        chart.addMeasureAxis("y", yDataFieldName);
+        var y = chart.addMeasureAxis("y", yDataFieldName);
+        var yMin = chart.addMeasureAxis(y, "min");
+        var yMax = chart.addMeasureAxis(y, "max");
+        var yMean = chart.addMeasureAxis(y, "mean");
+        var yQ90 = chart.addMeasureAxis(y, "q90");
+        var yQ75 = chart.addMeasureAxis(y, "q75");
+        var yQ50 = chart.addMeasureAxis(y, "q50");
         chart.addColorAxis(yDataFieldName, ["red", "green"]);
         chart.addSeries(yDataFieldName, dimple.plot.bar);
         chart.addSeries(yDataFieldName, dimple.plot.blubble);
+        chart.addSeries("min", dimple.plot.line, [x, yMin]);
+        chart.addSeries("max", dimple.plot.line, [x, yMax]);
+        chart.addSeries("mean", dimple.plot.line, [x, yMean]);
+        chart.addSeries("q90", dimple.plot.line, [x, yQ90]);
+        chart.addSeries("q75", dimple.plot.line, [x, yQ75]);
+        chart.addSeries("q50", dimple.plot.line, [x, yQ50]);
         chart.draw();
         changeVizAttributes();
         window.onresize = function () {
