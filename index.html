@@ -14,7 +14,10 @@
     <script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
 
     <script>
-      function fetchDataFromDynamoDB(newerThan) {
+      function fetchDataFromDynamoDB(backInTime) {
+        var nowInSeconds = new Date().getTime() / 1000;
+        var newerThan = nowInSeconds - backInTime;
+
         AWS.config.update({
           accessKeyId: config.awsAccessKeyId,
           secretAccessKey: config.awsSecretAccessKey
@@ -91,37 +94,34 @@
         };
       };
 
-      var nowInSeconds = new Date().getTime() / 1000;
       var oneDayInSeconds = 24 * 60 * 60;
       var threeDaysInSeconds = 3 * oneDayInSeconds;
       var oneWeekInSeconds = 7 * oneDayInSeconds;
       var oneMonthInSeconds = 30 * oneDayInSeconds;
       var oneYearInSeconds = 365 * oneDayInSeconds;
 
-      fetchDataFromDynamoDB(nowInSeconds - oneDayInSeconds);
+      fetchDataFromDynamoDB(oneDayInSeconds);
 
       d3.selectAll(".btn").on("click", function() {
-        var oldestTimestamp = 0;
+        // -1d is default:
+        var backInTime = oneDayInSeconds;
         switch(d3.event.target.id) {
-          case "-1d":
-            oldestTimestamp = nowInSeconds - oneDayInSeconds;
-            break;
           case "-3d":
-            oldestTimestamp = nowInSeconds -threeDaysInSeconds;
+            backInTime = threeDaysInSeconds;
             break;
           case "-1w":
-            oldestTimestamp = nowInSeconds - oneWeekInSeconds;
+            backInTime = oneWeekInSeconds;
             break;
           case "-1m":
-            oldestTimestamp = nowInSeconds - oneMonthInSeconds;
+            backInTime = oneMonthInSeconds;
             break;
           case "-1y":
-            oldestTimestamp = nowInSeconds - oneYearInSeconds;
+            backInTime = oneYearInSeconds;
             break;
         };
 
         d3.select("svg").remove();
-        fetchDataFromDynamoDB(oldestTimestamp);
+        fetchDataFromDynamoDB(backInTime);
       });
     </script>
   </body>
