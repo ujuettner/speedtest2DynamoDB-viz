@@ -8,62 +8,13 @@
     <button class="btn" id="-1y">-1y</button>
     <button class="btn" id="all">all</button>
     <script src="./config.js"></script>
+    <script src="./funcs.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.26.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/1.0.0/simple_statistics.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
 
     <script>
-      function fetchDataFromDynamoDB(backInTime) {
-        var nowInSeconds = new Date().getTime() / 1000;
-        var newerThan = nowInSeconds - backInTime;
-
-        AWS.config.update({
-          accessKeyId: config.awsAccessKeyId,
-          secretAccessKey: config.awsSecretAccessKey
-        });
-        AWS.config.region = config.awsRegion;
-        var dynamoDb = new AWS.DynamoDB();
-
-        var scanParams = {};
-        scanParams.TableName = config.tableName;
-        scanParams.FilterExpression = "#timeField >= :oldest";
-        scanParams.ExpressionAttributeNames = {
-          "#timeField": config.timeDataFieldName
-        };
-        scanParams.ExpressionAttributeValues = {
-          ":oldest": { "N": newerThan.toString() }
-        };
-
-        var data = [];
-        dynamoDb.scan(params = scanParams, function(err, fetchedData) {
-          if (err) {
-            console.log("Error on scan: ", JSON.stringify(err, null, 2));
-          } else {
-            fetchedData = fetchedData.Items;
-            fetchedData.forEach(function(item){
-              var dataItem = {};
-              // in JavaScript epoch time is in milliseconds, not seconds:
-              dataItem[config.timeDataFieldName] = Number(item.timestamp.N * 1000);
-              dataItem[config.valueDataFieldName] = Number(item.download_bit_per_second.N);
-              data.push(dataItem);
-            });
-            var values = data.map(function(item) { return item[config.valueDataFieldName]; }).
-              sort(function(a, b) {return a -b});
-            var mean = ss.mean(values);
-            var q50 = ss.quantileSorted(values, 0.5);
-            var q80 = ss.quantileSorted(values, 0.8);
-            data = data.map(function(item) {
-              item["mean"] = mean;
-              item["q50"] = q50;
-              item["q80"] = q80;
-              return item;
-            });
-            drawChart(data, config.timeDataFieldName, config.valueDataFieldName);
-          }
-        })
-      }
-
       function changeVizAttributes() {
         d3.selectAll(".dimple-custom-series-bar").attr("opacity", "0.3");
         d3.selectAll(".dimple-custom-series-bubble").attr("opacity", "0.9").attr("r", 2);
@@ -95,33 +46,13 @@
       };
 
       var oneDayInSeconds = 24 * 60 * 60;
-      var threeDaysInSeconds = 3 * oneDayInSeconds;
-      var oneWeekInSeconds = 7 * oneDayInSeconds;
-      var oneMonthInSeconds = 30 * oneDayInSeconds;
-      var oneYearInSeconds = 365 * oneDayInSeconds;
 
-      fetchDataFromDynamoDB(oneDayInSeconds);
+      funcs.fetchDataFromDynamoDB(oneDayInSeconds, drawChart);
 
       d3.selectAll(".btn").on("click", function() {
-        // -1d is default:
-        var backInTime = oneDayInSeconds;
-        switch(d3.event.target.id) {
-          case "-3d":
-            backInTime = threeDaysInSeconds;
-            break;
-          case "-1w":
-            backInTime = oneWeekInSeconds;
-            break;
-          case "-1m":
-            backInTime = oneMonthInSeconds;
-            break;
-          case "-1y":
-            backInTime = oneYearInSeconds;
-            break;
-        };
-
+        var backInTimeSeconds = funcs.calculateBackinTimeSeconds(d3.event.target.id);
         d3.select("svg").remove();
-        fetchDataFromDynamoDB(backInTime);
+        funcs.fetchDataFromDynamoDB(backInTimeSeconds, drawChart);
       });
     </script>
   </body>
