@@ -6,3 +6,9 @@ var config = {
   "timeDataFieldName": "timestamp",
   "valueDataFieldName": "download_bit_per_second"
 };
+
+if (typeof exports !== "undefined") {
+  if (typeof module !== "undefined" && module.exports) {
+    exports = module.exports = config;
+  }
+}
