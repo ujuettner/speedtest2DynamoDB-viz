@@ -4,11 +4,13 @@
   "description": "SVG to visualize the data gathered by [speedtest2DynamoDB](https://github.com/ujuettner/speedtest2DynamoDB) using [dimple](http://dimplejs.org/).",
   "devDependencies": {
     "grunt": "*",
+    "grunt-curl": "*",
     "grunt-aws-lambda": "*"
   },
   "dependencies": {
     "aws-sdk": "*",
-    "simple-statistics": "*"
+    "simple-statistics": "*",
+    "d3": "*"
   },
   "repository": {
     "type": "git",

@@ -2,6 +2,8 @@ if (typeof exports !== "undefined") {
   var AWS = require("aws-sdk");
   var ss = require("simple-statistics");
   var config = require("./config.js");
+  var d3 = require("d3");
+  var dimple = require("./lib/dimple.v2.1.6.min.js");
 }
 
 (function(exports){
@@ -82,5 +84,35 @@ if (typeof exports !== "undefined") {
         callback(data, config.timeDataFieldName, config.valueDataFieldName);
       }
     });
+  };
+
+  exports.changeVizAttributes = function() {
+    d3.selectAll(".dimple-custom-series-bar").attr("opacity", "0.3");
+    d3.selectAll(".dimple-custom-series-bubble").attr("opacity", "0.9").attr("r", 2);
+  }
+
+  exports.drawChart = function(data, xDataFieldName, yDataFieldName) {
+    var svg = dimple.newSvg("body", "100%", "95%");
+    var chart = new dimple.chart(svg, data);
+    chart.setMargins("100px", "10px", "10px", "180px");
+    var x = chart.addTimeAxis("x", xDataFieldName, null, "%a, %Y-%m-%d %H:%M:%S");
+    x.timePeriod = d3.time.hours;
+    x.timeInterval = 3;
+    var y = chart.addMeasureAxis("y", yDataFieldName);
+    var yMean = chart.addMeasureAxis(y, "mean");
+    var yQ50 = chart.addMeasureAxis(y, "q50");
+    var yQ80 = chart.addMeasureAxis(y, "q80");
+    chart.addColorAxis(yDataFieldName, ["red", "green"]);
+    chart.addSeries(yDataFieldName, dimple.plot.bar);
+    chart.addSeries(yDataFieldName, dimple.plot.blubble);
+    chart.addSeries("mean", dimple.plot.line, [x, yMean]);
+    chart.addSeries("q50", dimple.plot.line, [x, yQ50]);
+    chart.addSeries("q80", dimple.plot.line, [x, yQ80]);
+    chart.draw();
+    exports.changeVizAttributes();
+    window.onresize = function () {
+      chart.draw(0, noDataChange=true);
+      exports.changeVizAttributes();
+    };
   };
 })(typeof exports === "undefined"? this["funcs"] = {} : exports);
