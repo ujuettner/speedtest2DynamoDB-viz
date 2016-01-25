@@ -10,8 +10,13 @@
   "dependencies": {
     "aws-sdk": "*",
     "simple-statistics": "*",
-    "d3": "*"
+    "mustache": "*"
   },
+  "bundledDependencies": [
+    "aws-sdk",
+    "simple-statistics",
+    "mustache"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ujuettner/speedtest2DynamoDB-viz.git"

@@ -1,4 +1,4 @@
 config.js
 Gruntfile.js
 node_modules
-lib
+dist

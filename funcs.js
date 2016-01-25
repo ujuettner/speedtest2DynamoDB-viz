@@ -2,8 +2,6 @@ if (typeof exports !== "undefined") {
   var AWS = require("aws-sdk");
   var ss = require("simple-statistics");
   var config = require("./config.js");
-  var d3 = require("d3");
-  var dimple = require("./lib/dimple.v2.1.6.min.js");
 }
 
 (function(exports){
@@ -81,7 +79,7 @@ if (typeof exports !== "undefined") {
           item["q80"] = q80;
           return item;
         });
-        callback(data, config.timeDataFieldName, config.valueDataFieldName);
+        callback(data);
       }
     });
   };
@@ -91,7 +89,9 @@ if (typeof exports !== "undefined") {
     d3.selectAll(".dimple-custom-series-bubble").attr("opacity", "0.9").attr("r", 2);
   }
 
-  exports.drawChart = function(data, xDataFieldName, yDataFieldName) {
+  exports.drawChart = function(data) {
+    var xDataFieldName = config.timeDataFieldName;
+    var yDataFieldName = config.valueDataFieldName;
     var svg = dimple.newSvg("body", "100%", "95%");
     var chart = new dimple.chart(svg, data);
     chart.setMargins("100px", "10px", "10px", "180px");

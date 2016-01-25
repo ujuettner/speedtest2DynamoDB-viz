@@ -16,7 +16,6 @@
 
     <script>
       var oneDayInSeconds = 24 * 60 * 60;
-
       funcs.fetchDataFromDynamoDB(oneDayInSeconds, funcs.drawChart);
 
       d3.selectAll(".btn").on("click", function() {
