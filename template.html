@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;">
   <body style="width:100%;height:100%;margin:0;">
-    <script src="./config.js"></script>
-    <script src="./funcs.js"></script>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <!-- http://dimplejs.org/dist/dimple.v2.1.6.min.js is not available via HTTPS and
+         GitHub sets the X-Content-Type-Options: nosniff header. So, I have to use some strange rawgit mirror :-( -->
+    <script src="//cdn.rawgit.com/PMSI-AlignAlytics/dimple/master/dist/dimple.v2.1.6.min.js"></script>
 
     <script>
-      var data = {{{data}}};
+var data = {{{data}}};
+
+var config = {{{config}}};
+
+(function(exports){
+exports.changeVizAttributes = {{{funcChangeVizAttributes}}}
+exports.drawChart = {{{funcDrawChart}}}
+})(typeof exports === "undefined"? this["funcs"] = {} : exports);
+
       funcs.drawChart(data);
     </script>
   </body>
