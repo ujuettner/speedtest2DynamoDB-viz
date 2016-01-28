@@ -11,7 +11,9 @@
     <script src="./funcs.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.26.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/1.0.0/simple_statistics.min.js"></script>
-    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <!-- http://d3js.org/d3.v3.min.js is sometimes not available via HTTPS and
+         GitHub sets the X-Content-Type-Options: nosniff header. So, I have to use some strange rawgit mirror :-( -->
+    <script src="https://cdn.rawgit.com/mbostock/d3/v3.5.14/d3.min.js"></script>
     <!-- http://dimplejs.org/dist/dimple.v2.1.6.min.js is not available via HTTPS and
          GitHub sets the X-Content-Type-Options: nosniff header. So, I have to use some strange rawgit mirror :-( -->
     <script src="https://cdn.rawgit.com/PMSI-AlignAlytics/dimple/master/dist/dimple.v2.1.6.min.js"></script>
