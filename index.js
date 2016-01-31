@@ -16,7 +16,7 @@ exports.handler = function(event, context) {
           valueDataFieldName: config.valueDataFieldName
         }, null, 2),
         funcChangeVizAttributes: funcs.changeVizAttributes.toString(),
-        funcDrawChart: funcs.drawChart.toString()
+        funcDrawChartDimple: funcs.drawChartDimple.toString()
       };
 
       context.succeed(mustache.render(template, bindings));

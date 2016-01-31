@@ -1,6 +1,6 @@
 # speedtest2DynamoDB-viz
 
-SVG to visualize the data gathered by [speedtest2DynamoDB](https://github.com/ujuettner/speedtest2DynamoDB) using [dimple](http://dimplejs.org/).
+SVG to visualize the data gathered by [speedtest2DynamoDB](https://github.com/ujuettner/speedtest2DynamoDB) using [D3](http://d3js.org/) and [dimple](http://dimplejs.org/).
 
 ## In a browser
 

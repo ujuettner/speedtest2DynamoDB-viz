@@ -1,0 +1,19 @@
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: left;
+  padding: 4px;
+  background: lightgray;
+  border-radius: 4px;
+  pointer-events: none;
+}
