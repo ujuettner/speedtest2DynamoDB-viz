@@ -1,10 +1,9 @@
 {
   "name": "speedtest2DynamoDB-viz",
   "version": "0.0.1",
-  "description": "SVG to visualize the data gathered by [speedtest2DynamoDB](https://github.com/ujuettner/speedtest2DynamoDB) using [dimple](http://dimplejs.org/).",
+  "description": "SVG to visualize the data gathered by [speedtest2DynamoDB](https://github.com/ujuettner/speedtest2DynamoDB) using [D3](http://d3js.org/).",
   "devDependencies": {
     "grunt": "*",
-    "grunt-curl": "*",
     "grunt-aws-lambda": "*"
   },
   "dependencies": {

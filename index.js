@@ -7,19 +7,23 @@ exports.handler = function(event, context) {
   console.log('Received event:', JSON.stringify(event, null, 2));
 
   var backInTimeSeconds = funcs.calculateBackinTimeSeconds(event.backInTime);
-  funcs.fetchDataFromDynamoDB(backInTimeSeconds, function(data) {
+  funcs.fetchDataFromDynamoDB(backInTimeSeconds, function(data, quantiles) {
     fs.readFile("template.html", "utf8", function (err, template) {
-      var bindings = {
-        data: JSON.stringify(data, null, 2),
-        config: JSON.stringify({
-          timeDataFieldName: config.timeDataFieldName,
-          valueDataFieldName: config.valueDataFieldName
-        }, null, 2),
-        funcChangeVizAttributes: funcs.changeVizAttributes.toString(),
-        funcDrawChartDimple: funcs.drawChartDimple.toString()
-      };
+      fs.readFile("style.css", "utf8", function(err, styledef) {
+        var bindings = {
+          data: JSON.stringify(data, null, 2),
+          quantiles: JSON.stringify(quantiles, null, 2),
+          config: JSON.stringify({
+            timeDataFieldName: config.timeDataFieldName,
+            valueDataFieldName: config.valueDataFieldName
+          }, null, 2),
+          funcCalculateQuantiles: funcs.calculateQuantiles.toString(),
+          funcDrawChart: funcs.drawChart.toString(),
+          style: styledef
+        };
 
-      context.succeed(mustache.render(template, bindings));
+        context.succeed(mustache.render(template, bindings));
+      });
     });
   });
 };

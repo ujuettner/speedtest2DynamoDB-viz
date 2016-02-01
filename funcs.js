@@ -34,6 +34,16 @@ if (typeof exports !== "undefined") {
     return amount * baseSecondsPerUnit;
   };
 
+  exports.calculateQuantiles = function(data) {
+    var values = data.map(function(item) { return item[config.valueDataFieldName]; })
+          .sort(function(a, b) {return a - b});
+    return {
+      mean: ss.mean(values),
+      q50: ss.quantileSorted(values, 0.5),
+      q80: ss.quantileSorted(values, 0.8)
+    }
+  };
+
   exports.fetchDataFromDynamoDB = function(backInTimeSeconds, callback) {
     var nowInSeconds = new Date().getTime() / 1000;
     var newerThan = nowInSeconds - backInTimeSeconds;
@@ -68,27 +78,12 @@ if (typeof exports !== "undefined") {
           dataItem[config.valueDataFieldName] = Number(item.download_bit_per_second.N);
           data.push(dataItem);
         });
-        var values = data.map(function(item) { return item[config.valueDataFieldName]; })
-          .sort(function(a, b) {return a -b});
-        var mean = ss.mean(values);
-        var q50 = ss.quantileSorted(values, 0.5);
-        var q80 = ss.quantileSorted(values, 0.8);
-        data = data.map(function(item) {
-          item["mean"] = mean;
-          item["q50"] = q50;
-          item["q80"] = q80;
-          return item;
-        });
-        callback(data, {
-          "mean": mean,
-          "q50": q50,
-          "q80": q80
-        });
+        callback(data, exports.calculateQuantiles(data));
       }
     });
   };
 
-  exports.drawChart = function(data, linesAt) {
+  exports.drawChart = function(data, quantiles) {
     data.forEach(function(d) {
       d[config.timeDataFieldName] = +d[config.timeDataFieldName];
       d[config.valueDataFieldName] = +d[config.valueDataFieldName];
@@ -165,7 +160,7 @@ if (typeof exports !== "undefined") {
       })
       .attr("width", barWidth - 1)
       .attr("fill", function(d) {
-        return (linesAt["mean"] && d[config.valueDataFieldName] < linesAt["mean"]) ? "red" : "green";
+        return (quantiles["mean"] && d[config.valueDataFieldName] < quantiles["mean"]) ? "red" : "green";
       })
       .attr("opacity", "0.3")
       .on("mouseover", function(d) {
@@ -184,50 +179,18 @@ if (typeof exports !== "undefined") {
 
     var x1 = x(d3.min(data, function(d) { return d[config.timeDataFieldName]; }));
     var x2 = x(d3.max(data, function(d) { return d[config.timeDataFieldName]; }));
-    for (var key in linesAt) {
+    for (var key in quantiles) {
       svg.append("line")
         .attr("x1", x1)
-        .attr("y1", y(linesAt[key]))
+        .attr("y1", y(quantiles[key]))
         .attr("x2", x2 + barWidth/2)
-        .attr("y2", y(linesAt[key]))
+        .attr("y2", y(quantiles[key]))
         .style("stroke", "gray");
 
       svg.append("text")
-        .attr("transform", "translate(" + (width + barWidth/2 + 5) + ", " + y(linesAt[key]) + ")")
+        .attr("transform", "translate(" + (width + barWidth/2 + 5) + ", " + y(quantiles[key]) + ")")
         .style("fill", "black")
-        .text(key + ": " + formatValue(+linesAt[key]));
-    };
-  };
-
-  exports.changeVizAttributes = function() {
-    d3.selectAll(".dimple-custom-series-bar").attr("opacity", "0.3");
-    d3.selectAll(".dimple-custom-series-bubble").attr("opacity", "0.9").attr("r", 2);
-  };
-
-  exports.drawChartDimple = function(data) {
-    var xDataFieldName = config.timeDataFieldName;
-    var yDataFieldName = config.valueDataFieldName;
-    var svg = dimple.newSvg("body", "100%", "95%");
-    var chart = new dimple.chart(svg, data);
-    chart.setMargins("100px", "10px", "10px", "180px");
-    var x = chart.addTimeAxis("x", xDataFieldName, null, "%a, %Y-%m-%d %H:%M:%S");
-    x.timePeriod = d3.time.hours;
-    x.timeInterval = 3;
-    var y = chart.addMeasureAxis("y", yDataFieldName);
-    var yMean = chart.addMeasureAxis(y, "mean");
-    var yQ50 = chart.addMeasureAxis(y, "q50");
-    var yQ80 = chart.addMeasureAxis(y, "q80");
-    chart.addColorAxis(yDataFieldName, ["red", "green"]);
-    chart.addSeries(yDataFieldName, dimple.plot.bar);
-    chart.addSeries(yDataFieldName, dimple.plot.blubble);
-    chart.addSeries("mean", dimple.plot.line, [x, yMean]);
-    chart.addSeries("q50", dimple.plot.line, [x, yQ50]);
-    chart.addSeries("q80", dimple.plot.line, [x, yQ80]);
-    chart.draw();
-    exports.changeVizAttributes();
-    window.onresize = function () {
-      chart.draw(0, noDataChange=true);
-      exports.changeVizAttributes();
+        .text(key + ": " + formatValue(+quantiles[key]));
     };
   };
 })(typeof exports === "undefined"? this["funcs"] = {} : exports);
