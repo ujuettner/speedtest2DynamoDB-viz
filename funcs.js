@@ -89,9 +89,9 @@ if (typeof exports !== "undefined") {
       d[config.valueDataFieldName] = +d[config.valueDataFieldName];
     });
 
-    var margin = {top: 10, right: 120, bottom: 150, left: 60},
-        width = 1600 - margin.left - margin.right,
-        height = 800 - margin.top - margin.bottom;
+    var margin = {top: 10, right: 120, bottom: 150, left: 60};
+    var width = 1600 - margin.left - margin.right;
+    var height = 800 - margin.top - margin.bottom;
     var barWidth = Math.max.apply(Math, [3, width / data.length]);
 
     var formatDatetime = d3.time.format("%a, %Y-%m-%d %H:%M:%S");
