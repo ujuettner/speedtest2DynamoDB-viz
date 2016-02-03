@@ -1,3 +1,4 @@
 {
-  "backInTime": "-1d"
+  "backInTime": "-1d",
+  "serverRendering": "true"
 }

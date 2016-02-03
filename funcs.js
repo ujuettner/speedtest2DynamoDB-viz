@@ -2,6 +2,7 @@ if (typeof exports !== "undefined") {
   var AWS = require("aws-sdk");
   var ss = require("simple-statistics");
   var config = require("./config.js");
+  var d3 = require("d3");
 }
 
 (function(exports){
@@ -83,7 +84,7 @@ if (typeof exports !== "undefined") {
     });
   };
 
-  exports.drawChart = function(data, quantiles) {
+  exports.drawChart = function(data, quantiles, htmlElem) {
     data.forEach(function(d) {
       d[config.timeDataFieldName] = +d[config.timeDataFieldName];
       d[config.valueDataFieldName] = +d[config.valueDataFieldName];
@@ -114,7 +115,7 @@ if (typeof exports !== "undefined") {
       .tickFormat(formatValue)
       .orient("left");
 
-    var body = d3.select("body");
+    var body = (htmlElem) ? d3.select(htmlElem) : d3.select("body");
 
     var div = body.append("div")
       .attr("class", "tooltip")

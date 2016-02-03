@@ -9,7 +9,9 @@
   "dependencies": {
     "aws-sdk": "*",
     "simple-statistics": "*",
-    "mustache": "*"
+    "mustache": "*",
+    "jsdom": "^3",
+    "d3": "*"
   },
   "bundledDependencies": [
     "aws-sdk",

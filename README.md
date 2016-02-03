@@ -16,3 +16,6 @@ Credits go to [this Grunt plugin](https://github.com/Tim-B/grunt-aws-lambda).
 * Check whether a valid HTML is returned without errors: `grunt lambda_invoke`
   * Optionally, save the HTML output to a local file and open that file in a browser to check whether everything gets rendered nicely.
 * Bundle and upload to AWS Lambda: `grunt lambda_package lambda_deploy`
+* The following fields within the event are recognized:
+  * `backInTime`: An expression to indicate how much historical data is processed, e.g. `-1d` or `-2w`.
+  * `serverRendering`: Set to `true` to render the SVG on the server-side. Otherwise, the SVG will be rendered within the browser. If the SVG is rendered on the server-side, tooltips are not available.
