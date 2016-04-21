@@ -49,39 +49,47 @@ if (typeof exports !== "undefined") {
     var nowInSeconds = new Date().getTime() / 1000;
     var newerThan = nowInSeconds - backInTimeSeconds;
 
-    AWS.config.update({
+    var dynamoDb = new AWS.DynamoDB({
       accessKeyId: config.awsAccessKeyId,
-      secretAccessKey: config.awsSecretAccessKey
+      secretAccessKey: config.awsSecretAccessKey,
+      region: config.awsRegion
     });
-    AWS.config.region = config.awsRegion;
-    var dynamoDb = new AWS.DynamoDB();
 
-    var scanParams = {};
-    scanParams.TableName = "speedtestresults";
-    scanParams.FilterExpression = "#timeField >= :oldest";
-    scanParams.ExpressionAttributeNames = {
-      "#timeField": "timestamp"
-    };
-    scanParams.ExpressionAttributeValues = {
-      ":oldest": { "N": newerThan.toString() }
+    var scanParams = {
+      TableName: "speedtestresults",
+      ProjectionExpression: "#TS, download_bit_per_second",
+      FilterExpression: "#TS BETWEEN :oldest AND :newest",
+      ExpressionAttributeNames: {
+        "#TS": "timestamp"
+      },
+      ExpressionAttributeValues: {
+        ":oldest": { "N": newerThan.toString() },
+        ":newest": { "N": nowInSeconds.toString() }
+      },
+      Limit: 30000
     };
 
     var data = [];
-    dynamoDb.scan(params = scanParams, function(err, fetchedData) {
+    dynamoDb.scan(scanParams, onScan);
+    function onScan(err, fetchedData) {
       if (err) {
         callback(JSON.stringify(err, null, 2))
       } else {
-        fetchedData = fetchedData.Items;
-        fetchedData.forEach(function(item){
+        fetchedData.Items.forEach(function(item){
           var dataItem = {};
           // in JavaScript epoch time is in milliseconds, not seconds:
           dataItem[config.timeDataFieldName] = Number(item.timestamp.N * 1000);
           dataItem[config.valueDataFieldName] = Number(item.download_bit_per_second.N);
           data.push(dataItem);
         });
-        callback(data, exports.calculateQuantiles(data));
+        if (typeof fetchedData.LastEvaluatedKey != "undefined") {
+          scanParams.ExclusiveStartKey = fetchedData.LastEvaluatedKey;
+          dynamoDb.scan(scanParams, onScan);
+        } else {
+          callback(data, exports.calculateQuantiles(data));
+        }
       }
-    });
+    };
   };
 
   exports.drawChart = function(data, quantiles, htmlElem) {
