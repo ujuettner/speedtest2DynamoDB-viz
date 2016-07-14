@@ -11,7 +11,7 @@
     "simple-statistics": "*",
     "mustache": "*",
     "jsdom": "^3",
-    "d3": "*"
+    "d3": "^3"
   },
   "bundledDependencies": [
     "aws-sdk",
