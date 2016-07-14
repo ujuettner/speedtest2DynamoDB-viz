@@ -48,6 +48,7 @@ if (typeof exports !== "undefined") {
   exports.fetchDataFromDynamoDB = function(backInTimeSeconds, callback) {
     var nowInSeconds = new Date().getTime() / 1000;
     var newerThan = nowInSeconds - backInTimeSeconds;
+    var expectedDataPoints = Math.ceil(backInTimeSeconds / (60 * 15));
 
     var dynamoDb = new AWS.DynamoDB({
       accessKeyId: config.awsAccessKeyId,
@@ -86,13 +87,13 @@ if (typeof exports !== "undefined") {
           scanParams.ExclusiveStartKey = fetchedData.LastEvaluatedKey;
           dynamoDb.scan(scanParams, onScan);
         } else {
-          callback(data, exports.calculateQuantiles(data));
+          callback(data, exports.calculateQuantiles(data), expectedDataPoints);
         }
       }
     };
   };
 
-  exports.drawChart = function(data, quantiles, htmlElem) {
+  exports.drawChart = function(data, quantiles, expectedDataPoints, htmlElem) {
     data.forEach(function(d) {
       d[config.timeDataFieldName] = +d[config.timeDataFieldName];
       d[config.valueDataFieldName] = +d[config.valueDataFieldName];
@@ -101,7 +102,7 @@ if (typeof exports !== "undefined") {
     var margin = {top: 10, right: 120, bottom: 150, left: 60};
     var width = 1600 - margin.left - margin.right;
     var height = 800 - margin.top - margin.bottom;
-    var barWidth = Math.max.apply(Math, [3, width / data.length]);
+    var barWidth = Math.max.apply(Math, [3, width / expectedDataPoints]);
 
     var formatDatetime = d3.time.format("%a, %Y-%m-%d %H:%M:%S");
     var formatDatetimeTooltip = d3.time.format("%Y-%m-%d %H:%M");

@@ -15,13 +15,15 @@ var data = {{{data}}};
 
 var quantiles = {{{quantiles}}};
 
+var expectedDataPoints = {{{expectedDataPoints}}};
+
 var config = {{{config}}};
 
 (function(exports){
 exports.drawChart = {{{funcDrawChart}}}
 })(typeof exports === "undefined"? this["funcs"] = {} : exports);
 
-      funcs.drawChart(data, quantiles);
+      funcs.drawChart(data, quantiles, expectedDataPoints);
     </script>
   </body>
 </html>

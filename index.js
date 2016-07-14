@@ -8,7 +8,7 @@ exports.handler = function(event, context) {
   console.log('Received event:', JSON.stringify(event, null, 2));
 
   var backInTimeSeconds = funcs.calculateBackinTimeSeconds(event.backInTime);
-  funcs.fetchDataFromDynamoDB(backInTimeSeconds, function(data, quantiles) {
+  funcs.fetchDataFromDynamoDB(backInTimeSeconds, function(data, quantiles, expectedDataPoints) {
     fs.readFile("style.css", "utf8", function(err, styledef) {
       if (event.serverRendering && JSON.parse(event.serverRendering)) {
         var htmlStub = mustache.render(
@@ -20,7 +20,7 @@ exports.handler = function(event, context) {
           html: htmlStub,
           done: function(errors, window) {
             var body = window.document.querySelector("body");
-            funcs.drawChart(data, quantiles, body);
+            funcs.drawChart(data, quantiles, expectedDataPoints, body);
             context.succeed(window.document.documentElement.outerHTML);
           }
         });
@@ -29,6 +29,7 @@ exports.handler = function(event, context) {
           var bindings = {
             data: JSON.stringify(data, null, 2),
             quantiles: JSON.stringify(quantiles, null, 2),
+            expectedDataPoints: JSON.stringify(expectedDataPoints, null, 2),
             config: JSON.stringify({
               timeDataFieldName: config.timeDataFieldName,
               valueDataFieldName: config.valueDataFieldName
